@@ -23,6 +23,11 @@ gulp.task('views', function(){
     .pipe(gulp.dest('_dist/'));
 });
 
+gulp.task('html', function(){
+  gulp.src('app/**/*.html')
+    .pipe(gulp.dest('_dist/'));
+});
+
 gulp.task('styles', function () {
   return gulp.src('app/styles/**/*.scss')
     .pipe(sass.sync().on('error', sass.logError))
@@ -34,7 +39,7 @@ gulp.task('styles', function () {
 });
 
 gulp.task('script', function(){
-  return gulp.src('app/script/**/*.js')
+  return gulp.src('app/**/*.js')
     .pipe(sourcemaps.init())
     .pipe(concat('script.min.js'))
     .pipe(sourcemaps.write())
@@ -68,4 +73,4 @@ gulp.task('clean', function() {
 
 gulp.task('default', ['clean', 'build', 'webserver', 'watch']);
 
-gulp.task('build', ['clearCache', 'copy', 'views', 'styles', 'script']);
+gulp.task('build', ['clearCache', 'copy', 'views', 'html', 'styles', 'script']);
