@@ -1,8 +1,9 @@
 var Backbone = require('backbone');
+var HomeView = require('./containers/HomePage');
 
 var Router = Backbone.Router.extend({
   routes: {
-    '': 'home'
+    '': 'default'
   },
 
   initialize: function() {
@@ -10,7 +11,11 @@ var Router = Backbone.Router.extend({
   },
 
   default: function() {
+    var view = new HomeView();
 
+    view.render();
   }
 
 });
+
+module.exports = Router;

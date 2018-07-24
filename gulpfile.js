@@ -9,11 +9,12 @@ var concat = require('gulp-concat');
 var connect = require('gulp-connect');
 var declare = require('gulp-declare');
 var minifyCSS = require('gulp-csso');
+var browserify = require('gulp-browserify');
 var handlebars = require('gulp-handlebars');
 var sourcemaps = require('gulp-sourcemaps');
 
 gulp.task('views', function(){
-  gulp.src('app/**/*.hbs')
+  return gulp.src('app/**/*.hbs')
     .pipe(handlebars())
     .pipe(wrap('Handlebars.template(<%= contents %>)'))
     .pipe(declare({
@@ -24,12 +25,12 @@ gulp.task('views', function(){
 });
 
 gulp.task('html', function(){
-  gulp.src('app/**/*.html')
+  return gulp.src('app/**/*.html')
     .pipe(gulp.dest('_dist/'));
 });
 
 gulp.task('styles', function () {
-  gulp.src('app/styles/**/*.scss')
+  return gulp.src('app/styles/**/*.scss')
     .pipe(sass.sync().on('error', sass.logError))
     .pipe(minifyCSS())
     .pipe(sourcemaps.init())
@@ -39,7 +40,8 @@ gulp.task('styles', function () {
 });
 
 gulp.task('script', function(){
-  return gulp.src('app/**/*.js')
+  return gulp.src('app/index.js')
+    .pipe(browserify())
     .pipe(sourcemaps.init())
     .pipe(concat('script.min.js'))
     .pipe(sourcemaps.write())
@@ -56,7 +58,7 @@ gulp.task('watch', ['build'], function() {
 });
 
 gulp.task('webserver', function() {
-  connect.server({
+  return connect.server({
     livereload: true,
     root: '_dist'
   });
@@ -73,4 +75,4 @@ gulp.task('clean', function() {
 
 gulp.task('default', ['clean', 'build', 'webserver', 'watch']);
 
-gulp.task('build', ['clearCache', 'copy', 'views', 'html', 'styles', 'script']);
+gulp.task('build', ['clearCache', 'copy', 'html', 'styles', 'script']);

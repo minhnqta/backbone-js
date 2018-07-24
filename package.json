@@ -20,6 +20,7 @@
   "homepage": "https://github.com/minhnqta/backbone-js#readme",
   "devDependencies": {
     "gulp": "^3.9.1",
+    "gulp-browserify": "^0.5.1",
     "gulp-cache": "^1.0.2",
     "gulp-clean": "^0.4.0",
     "gulp-concat": "^2.6.1",
