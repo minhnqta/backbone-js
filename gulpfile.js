@@ -62,7 +62,7 @@ gulp.task('clearCache', function() {
 });
 
 gulp.task('clean', function() {
-  return gulp.src('app/_dist')
+  gulp.src('_dist')
     .pipe(clean({ force: true }));
 });
 
