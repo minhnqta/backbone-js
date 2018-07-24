@@ -29,7 +29,7 @@ gulp.task('html', function(){
 });
 
 gulp.task('styles', function () {
-  return gulp.src('app/styles/**/*.scss')
+  gulp.src('app/styles/**/*.scss')
     .pipe(sass.sync().on('error', sass.logError))
     .pipe(minifyCSS())
     .pipe(sourcemaps.init())
