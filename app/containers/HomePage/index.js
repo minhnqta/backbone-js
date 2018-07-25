@@ -3,7 +3,7 @@ var template = require('./home.view.hbs');
 
 var HomeView = Backbone.View.extend({
   el: '#main',
-  template: template,
+  template,
 
   render: function() {
     var that = this;
