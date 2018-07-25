@@ -1,18 +1,18 @@
 var Backbone = require('backbone');
-
-var getTemplate = require('../../utils/getTemplate');
+var template = require('./home.view.hbs');
 
 var HomeView = Backbone.View.extend({
   el: '#main',
+  template: template,
 
   render: function() {
     var that = this;
 
-    getTemplate('containers/HomePage/home.view.html').then(function(template) {
-      that.$el.html(template({
-        name: 'mink nq'
-      }));
-    });
+    that.$el.html(template({
+      name: 'mink nq'
+    }));
+
+    return this;
   }
 });
 
