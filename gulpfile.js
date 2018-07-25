@@ -1,71 +1,105 @@
-'use strict';
-
+/* jshint strict: false */
+/* globals require, console */
 var gulp = require('gulp');
+var exit = require('gulp-exit');
+var connect = require('gulp-connect');
+
+var browserify = require('browserify');
+var watchify = require('watchify');
+var babelify = require('babelify');
 var hbsfy = require('hbsfy');
+
+var source = require('vinyl-source-stream');
+var buffer = require('vinyl-buffer');
+
+var rename = require('gulp-rename');
+var uglify = require('gulp-uglify');
+var sourcemaps = require('gulp-sourcemaps');
+
 var sass = require('gulp-sass');
 var minifyCSS = require('gulp-csso');
-var clean = require('gulp-clean');
 var cache = require('gulp-cache');
-var concat = require('gulp-concat');
-var connect = require('gulp-connect');
-var browserify = require('gulp-browserify');
-var sourcemaps = require('gulp-sourcemaps');
-var runSequence = require('run-sequence');
 
-gulp.task('main', function(){
-  return gulp.src('app/index.js')
-    .pipe(sourcemaps.init())
-      .pipe(browserify({ transform: 'hbsfy' }))
-      .pipe(concat('script.js'))
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('_dist'));
-});
+function compile(watch) {
+    var bundler = watchify(
+      browserify('./app/index.js', { debug: true })
+      .transform(hbsfy)
+      .transform(babelify, {
+        // Use all of the ES2015 spec
+        presets: ["es2015"],
+        sourceMaps: true
+      })
+    );
 
-gulp.task('script', function(){
-  return gulp.src('app/**/*.js')
-    .pipe(sourcemaps.init())
-      .pipe(browserify())
-      .pipe(concat('script.min.js'))
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('_dist'));
+    function rebundle() {
+      return bundler
+        .bundle()
+        .on('error', function (err) {
+            console.error(111, err);
+            this.emit('end');
+        })
+        .pipe(source('script.js'))
+        .pipe(buffer())
+        .pipe(rename('script.min.js'))
+        .pipe(sourcemaps.init({ loadMaps: true }))
+        .pipe(uglify())
+        .pipe(sourcemaps.write('./'))
+        .pipe(gulp.dest('_dist'));
+    }
+
+    if (watch) {
+      bundler.on('update', function () {
+          console.log('-> bundling...');
+          rebundle();
+      });
+
+      rebundle();
+    } else {
+      rebundle().pipe(exit());
+    }
+}
+
+gulp.task('babel', function () {
+  return compile(true);
 });
 
 gulp.task('styles', function () {
-  return gulp.src('app/**/*.scss')
-    .pipe(sourcemaps.init())
+  gulp.src('app/**/*.scss')
+    .pipe(sass().on('error', sass.logError))
+    .pipe(rename('styles.min.css'))
+    .pipe(sourcemaps.init({ loadMaps: true }))
     .pipe(minifyCSS())
-    .pipe(concat('styles.css'))
-    .pipe(sourcemaps.write())
+    .pipe(sourcemaps.write('./'))
     .pipe(gulp.dest('_dist'));
 });
 
-gulp.task('clean', function() {
-  return gulp.src('_dist', { read: false })
-    .pipe(clean({ force: true }));
-});
-
 gulp.task('index', function() {
-  return gulp.src('app/index.html')
+  gulp.src('app/index.html')
     .pipe(gulp.dest('_dist'));
 });
 
 gulp.task('clearCache', function() {
-  cache.clearAll();
+  return cache.clearAll();
 });
 
-gulp.task('webserver', function() {
+gulp.task('connect', function() {
   connect.server({
-    livereload: true,
-    root: '_dist'
+    port: 8709,
+    root: '_dist',
+    livereload: true
   });
 });
 
-gulp.task('watch', function() {
+gulp.task('build', gulp.parallel(['index', 'styles', 'babel']));
+
+gulp.task('watch', gulp.series(['build']), function() {
   gulp.watch('app/**/*.*', ['build']);
 });
 
-gulp.task('build', ['index', 'styles', 'main']);
-
-gulp.task('default', ['clearCache', 'clean'], function() {
-  runSequence('build', 'webserver', 'watch');
-});
+gulp.task('default',
+  gulp.parallel([
+    'clearCache',
+    'connect',
+    'watch'
+  ])
+);
