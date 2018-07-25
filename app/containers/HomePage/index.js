@@ -1,3 +1,5 @@
+'use strict';
+
 var Backbone = require('backbone');
 var template = require('./home.view.hbs');
 
@@ -11,6 +13,8 @@ var HomeView = Backbone.View.extend({
     that.$el.html(template({
       name: 'mink nq'
     }));
+
+    console.log(222);
 
     return this;
   }

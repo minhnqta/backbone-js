@@ -9,37 +9,48 @@ var cache = require('gulp-cache');
 var concat = require('gulp-concat');
 var connect = require('gulp-connect');
 var browserify = require('gulp-browserify');
+var sourcemaps = require('gulp-sourcemaps');
+var runSequence = require('run-sequence');
 
-gulp.task('styles', function () {
-  gulp.src('app/**/*.scss')
-    .pipe(minifyCSS())
-    .pipe(concat('styles.css'))
+gulp.task('main', function(){
+  return gulp.src('app/index.js')
+    .pipe(sourcemaps.init())
+      .pipe(browserify({ transform: 'hbsfy' }))
+      .pipe(concat('script.js'))
+    .pipe(sourcemaps.write())
     .pipe(gulp.dest('_dist'));
 });
 
 gulp.task('script', function(){
-  gulp.src('app/index.js')
-    .pipe(browserify({ transform: 'hbsfy' }))
-    .pipe(concat('script.js'))
+  return gulp.src('app/**/*.js')
+    .pipe(sourcemaps.init())
+      .pipe(browserify())
+      .pipe(concat('script.min.js'))
+    .pipe(sourcemaps.write())
     .pipe(gulp.dest('_dist'));
+});
+
+gulp.task('styles', function () {
+  return gulp.src('app/**/*.scss')
+    .pipe(sourcemaps.init())
+    .pipe(minifyCSS())
+    .pipe(concat('styles.css'))
+    .pipe(sourcemaps.write())
+    .pipe(gulp.dest('_dist'));
+});
+
+gulp.task('clean', function() {
+  return gulp.src('_dist', { read: false })
+    .pipe(clean({ force: true }));
 });
 
 gulp.task('index', function() {
-  gulp.src('app/index.html')
+  return gulp.src('app/index.html')
     .pipe(gulp.dest('_dist'));
-});
-
-gulp.task('watch', ['build'], function() {
-  gulp.watch('app/**/*.*', ['build']);
 });
 
 gulp.task('clearCache', function() {
   cache.clearAll();
-});
-
-gulp.task('clean', function() {
-  gulp.src('_dist')
-    .pipe(clean({ force: true }));
 });
 
 gulp.task('webserver', function() {
@@ -49,6 +60,12 @@ gulp.task('webserver', function() {
   });
 });
 
-gulp.task('default', ['clean', 'clearCache', 'webserver', 'watch']);
+gulp.task('watch', function() {
+  gulp.watch('app/**/*.*', ['build']);
+});
 
-gulp.task('build', ['index', 'styles', 'script']);
+gulp.task('build', ['index', 'styles', 'main']);
+
+gulp.task('default', ['clearCache', 'clean'], function() {
+  runSequence('build', 'webserver', 'watch');
+});
